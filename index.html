@@ -147,7 +147,7 @@ $(document).ready(function() {
 			calcWorth += (valTemp * Actions.FIELD_CREATE);
 		}
 
-		calcToLevel = Math.round(apNextLevel / calcWorth);
+		calcToLevel = (calcWorth > 0 ? Math.round(apNextLevel / calcWorth) : 0);
 
 		$('#calcWorth').text(calcWorth);
 		$('#calcToLevel').text(calcToLevel);
