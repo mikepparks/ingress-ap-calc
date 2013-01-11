@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Ingress Player Calc</title>
+		<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+		<link href="http://fonts.googleapis.com/css?family=Coda" rel="stylesheet" type="text/css">
+		<script type="text/javascript" src="jquery.min.js"></script>
+		<script type="text/javascript">
+$(document).ready(function() {
+	var apLevels = [0,10000,30000,70000,150000,300000,600000,1200000];
+
+	var Defs = {
+		PORTAL_MAX : 8
+	};
+
+	var Actions = {
+		ENEMY_PORTAL_HACK : 100,
+		FIELD_CREATE : 1250,
+		FIELD_DESTROY : 750,
+		LINK_CREATE : 313,
+		LINK_DESTROY : 187,
+		RESO_MAKE : 125,
+		RESO_DESTROY : 75,
+		NEUTRAL_PORTAL : 500,
+		SHIELD_MAKE : 150,
+		FULL_RESO_BONUS : 250
+	};
+
+	$('#currAP,#portalLinks,#portalFields').live('keyup change', function() {
+		var currAP = parseInt($('#currAP').val());
+		var portalLinks = parseInt($('#portalLinks').val());
+		var portalFields = parseInt($('#portalFields').val());
+		var nextLevel = 1;
+		var apNextLevel = 0;
+
+		currAP = (isNaN(currAP) ? 0 : currAP);
+		portalLinks = (isNaN(portalLinks) ? 0 : portalLinks);
+		portalFields = (isNaN(portalFields) ? 0 : portalFields);
+
+		for (var i = 0; i < apLevels.length; ++i) {
+			if (currAP >= apLevels[i]) {
+				nextLevel = i + 2;
+			} else {
+				break;
+			}
+		}
+
+		if (nextLevel > apLevels.length) {
+			nextLevel = apLevels.length;
+			apNextLevel = apLevels[nextLevel - 1];
+		} else {
+			apNextLevel = apLevels[nextLevel - 1] - currAP;
+		}
+
+		$('#nextLevel').text(nextLevel);
+		$('#apNextLevel').text(apNextLevel);
+
+		// per item
+		$('#enemyPortalHack').text(Math.round(apNextLevel / Actions.ENEMY_PORTAL_HACK));
+
+		$('#fieldMake').text(Math.round(apNextLevel / Actions.FIELD_CREATE));
+		$('#fieldDestroy').text(Math.round(apNextLevel / Actions.FIELD_DESTROY));
+
+		$('#linkMake').text(Math.round(apNextLevel / Actions.LINK_CREATE));
+		$('#linkDestroy').text(Math.round(apNextLevel / Actions.LINK_DESTROY));
+
+		$('#resoMake').text(Math.round(apNextLevel / Actions.RESO_MAKE));
+		$('#resoDestroy').text(Math.round(apNextLevel / Actions.RESO_DESTROY));
+
+		$('#neutralPortal').text(Math.round(apNextLevel / Actions.NEUTRAL_PORTAL));
+
+		$('#shieldMake').text(Math.round(apNextLevel / Actions.SHIELD_MAKE));
+
+
+		// situations
+		$('#portalFull').text(Math.round(apNextLevel / (
+			(Actions.RESO_MAKE * Defs.PORTAL_MAX) + Actions.FULL_RESO_BONUS
+		)));
+
+		$('#portalFullEnemy').text(Math.round(apNextLevel / (
+			(Actions.RESO_DESTROY * Defs.PORTAL_MAX) +
+			(Actions.NEUTRAL_PORTAL) +
+			(Actions.RESO_MAKE * Defs.PORTAL_MAX) + Actions.FULL_RESO_BONUS
+		)));
+
+		$('#portalFullDestroy').text(Math.round(apNextLevel / (
+			(Actions.RESO_DESTROY * Defs.PORTAL_MAX)
+		)));
+
+		$('#fullDestroyLinks').text(Math.round(apNextLevel / (
+			(Actions.RESO_DESTROY * Defs.PORTAL_MAX) +
+			(Actions.LINK_DESTROY * portalLinks)
+		)));
+
+		$('#fullDestroyFields').text(Math.round(apNextLevel / (
+			(Actions.RESO_DESTROY * Defs.PORTAL_MAX) +
+			(Actions.LINK_DESTROY * (portalFields * 2)) +
+			(Actions.FIELD_DESTROY * portalFields)
+		)));
+	});
+
+	$('#currAP').change();
+});
+		</script>
+		<style>
+* {
+	font-family: "Coda", "Consolas", monospace;
+}
+
+body {
+	background-color: #000;
+	color: #FFF;
+}
+
+input,textarea,label {
+	display: block;
+}
+
+input[type=text],input[type=number],input[type=email] {
+	border: 5px solid #00B0E2;
+	border-radius: 10px;
+	padding: 5px;
+	background-color: #000;
+	color: #FFF;
+}
+
+p {
+	margin: 0;
+}
+
+p > span {
+	margin-left: 3px;
+}
+
+.countContainer .item {
+	margin-left: 10px;
+
+	float: left;
+}
+
+.countContainer .item:first-child {
+	margin-left: 0px;
+}
+
+.countContainer .item .list {
+	width: 350px;
+	height: 350px;
+	border: 10px solid #00B0E2;
+	border-radius: 20px;
+	background-color: #00C9FF;
+	padding: 10px;
+	color: #000;
+}
+
+.countContainer .item .list input {
+	display: inline;
+	width: 50px;
+}
+
+.break {
+	margin-bottom: 20px;
+}
+		</style>
+	</head>
+	<body>
+		<form id="apQuery" name="apQuery" method="post" action="#">
+			<label for="currAP">Current AP</label>
+			<input type="number" id="currAP" name="currAP" value="0" />
+		</form>
+
+		<h3>Next Level: <span id="nextLevel"></span></h3>
+		<h3>AP To Level: <span id="apNextLevel"></span></h3>
+
+		<div class="countContainer">
+			<div class="item">
+				<h3>AP Per Item</h3>
+				<div class="list">
+					<p>Enemy Portals to Hack: <span id="enemyPortalHack"></span></p>
+					<div class="break"></div>
+
+					<p>Fields to Make: <span id="fieldMake"></span></p>
+					<p>Fields to Destroy: <span id="fieldDestroy"></span></p>
+					<div class="break"></div>
+
+					<p>Links to Make:<span id="linkMake"></span></p>
+					<p>Links to Destroy:<span id="linkDestroy"></span></p>
+					<div class="break"></div>
+
+					<p>Resonators to Deploy:<span id="resoMake"></span></p>
+					<p>Resonators to Destroy:<span id="resoDestroy"></span></p>
+					<div class="break"></div>
+
+					<p>Neutral Portals to Capture:<span id="neutralPortal"></span></p>
+					<div class="break"></div>
+
+					<p>Shields to Deploy:<span id="shieldMake"></span></p>
+					<div class="break"></div>
+				</div>
+			</div>
+
+			<div class="item">
+				<h3>AP Situations</h3>
+				<div class="list">
+					<p>Full Resonator Deploy from Neutral:<span id="portalFull"></span></p>
+					<div class="break"></div>
+
+					<p>Full Resonator Deploy from Full Enemy:<span id="portalFullEnemy"></span></p>
+					<div class="break"></div>
+
+					<p>Full Enemy Destroy:<span id="portalFullDestroy"></span></p>
+					<div class="break"></div>
+
+					<p>Full Destroy with <input type="number" id="portalLinks" name="portalLinks" value="0" /> Links:<span id="fullDestroyLinks"></span></p>
+					<div class="break"></div>
+
+					<p>Full Destroy with <input type="number" id="portalFields" name="portalFields" value="0" /> Fields:<span id="fullDestroyFields"></span></p>
+					<div class="break"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
