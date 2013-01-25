@@ -8,6 +8,7 @@
 		<script type="text/javascript">
 $(document).ready(function() {
 	var apLevels = [0,10000,30000,70000,150000,300000,600000,1200000];
+	var currTab;
 
 	var Defs = {
 		PORTAL_MAX : 8
@@ -21,14 +22,32 @@ $(document).ready(function() {
 		LINK_DESTROY : 187,
 		RESO_MAKE : 125,
 		RESO_DESTROY : 75,
+		RESO_UPGRADE : 65,
+		RESO_RECHARGE : 10,
 		NEUTRAL_PORTAL : 500,
 		SHIELD_MAKE : 150,
 		FULL_RESO_BONUS : 250
 	};
 
 	$('#currAP,#portalLinks,#portalFields').live('keyup change', doCalc);
-	$('#doHackEnemyCount,#doDestroyResoCount,#doDestroyLinkCount,#doDestroyFieldCount,#doCapNeutralCount,#doDeployResoCount,#doDeployShieldCount,#doCreateLinkCount,#doCreateFieldCount').live('keyup change', doCalc);
-	$('#doHackEnemy,#doDestroyReso,#doDestroyLink,#doDestroyField,#doCapNeutral,#doDeployReso,#doDeployShield,#doCreateLink,#doCreateField').change(doCalc);
+	$('#doHackEnemyCount,#doDestroyResoCount,#doDestroyLinkCount,#doDestroyFieldCount,#doCapNeutralCount,#doDeployResoCount,#doDeployShieldCount,#doCreateLinkCount,#doCreateFieldCount,#doRechargeCount,#doUpgradeResoCount').live('keyup change', doCalc);
+	$('#doHackEnemy,#doDestroyReso,#doDestroyLink,#doDestroyField,#doCapNeutral,#doDeployReso,#doDeployShield,#doCreateLink,#doCreateField,#doRecharge,#doUpgradeReso').change(doCalc);
+	$('ul.countContainer li').click(changeTab);
+	$('ul.countContainer li[data-active=true]').click();
+
+	function changeTab() {
+		if ($(currTab).get(0) === $(this).get(0)) return;
+
+		if (currTab) {
+			currTab.children('.list').fadeOut();
+			currTab.attr('data-active', false);
+		}
+
+		currTab = $(this);
+		currTab.attr('data-active', true);
+
+		currTab.children('.list').fadeIn();
+	}
 
 	function doCalc() {
 		var currAP = parseInt($('#currAP').val());
@@ -146,6 +165,14 @@ $(document).ready(function() {
 			calcWorth += (valTemp * (Actions.LINK_CREATE * 2));
 			calcWorth += (valTemp * Actions.FIELD_CREATE);
 		}
+		if ($('#doRecharge:checked').length > 0) {
+			valTemp = (isNaN($('#doRechargeCount').val()) ? 0 : $('#doRechargeCount').val());
+			calcWorth += (valTemp * Actions.RESO_RECHARGE);
+		}
+		if ($('#doUpgradeReso:checked').length > 0) {
+			valTemp = (isNaN($('#doUpgradeResoCount').val()) ? 0 : $('#doUpgradeResoCount').val());
+			calcWorth += (valTemp * Actions.RESO_UPGRADE);
+		}
 
 		calcToLevel = (calcWorth > 0 ? Math.round(apNextLevel / calcWorth) : 0);
 
@@ -186,32 +213,59 @@ p > span {
 	margin-left: 3px;
 }
 
-.countContainer .item {
-	margin-left: 10px;
+ul.countContainer {
+	padding: 0;
+	margin: 0;
+	list-style-type: none;
+}
 
+ul.countContainer li {
+	margin: 0;
 	float: left;
+	clear: both;
+
+	border: 5px solid #00B0E2;
+	border-radius: 10px;
+	padding: 5px;
+	cursor: pointer;
+
+	width: 150px;
+	height: 20px;
 }
 
-.countContainer .item:first-child {
-	margin-left: 0px;
-}
-
-.countContainer .item .list {
-	width: 350px;
-	height: 400px;
-	border: 10px solid #00B0E2;
-	border-radius: 20px;
-	background-color: #00C9FF;
-	padding: 10px;
+ul.countContainer li[data-active=true], ul.countContainer li[data-active=true]:active {
+	background-color: #0CF;
 	color: #000;
 }
 
-.countContainer .item .list input {
+ul.countContainer li:hover {
+	background-color: #0CF;
+	color: #000;
+}
+
+ul.countContainer li:active {
+	background-color: #09F;
+}
+
+ul.countContainer li .list {
+	position: absolute;
+	display: none;
+	top: 185px;
+	left: 200px;
+	border: 10px solid #00B0E2;
+	border-radius: 20px;
+	background-color: #0CF;
+	padding: 10px;
+	color: #000;
+	cursor: default;
+}
+
+ul.countContainer li .list input {
 	width: 20px;
 	display: inline;
 }
 
-.countContainer .item .list input[type=number] {
+ul.countContainer li .list input[type=number] {
 	width: 50px;
 	border: 3px solid #00B0E2;
 	border-radius: 10px;
@@ -225,6 +279,10 @@ p > span {
 .break {
 	margin-bottom: 20px;
 }
+
+.clear {
+	clear: both;
+}
 		</style>
 	</head>
 	<body>
@@ -234,9 +292,8 @@ p > span {
 		<h3>Next Level: <span id="nextLevel"></span></h3>
 		<h3>AP To Level: <span id="apNextLevel"></span></h3>
 
-		<div class="countContainer">
-			<div class="item">
-				<h3>To Level</h3>
+		<ul class="countContainer">
+			<li data-active="true">To Level
 				<div class="list">
 					<p>Enemy Portals to Hack: <span id="enemyPortalHack"></span></p>
 					<div class="break"></div>
@@ -259,10 +316,9 @@ p > span {
 					<p>Shields to Deploy:<span id="shieldMake"></span></p>
 					<div class="break"></div>
 				</div>
-			</div>
+			</li>
 
-			<div class="item">
-				<h3>AP Situations</h3>
+			<li>AP Situations
 				<div class="list">
 					<p>Full Resonator Deploy from Neutral:<span id="portalFull"></span></p>
 					<div class="break"></div>
@@ -279,10 +335,9 @@ p > span {
 					<p>Full Destroy with <input type="number" id="portalFields" name="portalFields" value="0" /> Fields:<span id="fullDestroyFields"></span></p>
 					<div class="break"></div>
 				</div>
-			</div>
+			</li>
 
-			<div class="item">
-				<h3>SitCalc</h3>
+			<li>SitCalc
 				<div class="list">
 					<p><input type="checkbox" id="doHackEnemy" name="doHackEnemy" />Hack <input type="number" id="doHackEnemyCount" name="doHackEnemyCount" value="0" /> Enemy Portals</p>
 					<p><input type="checkbox" id="doDestroyReso" name="doDestroyReso" /> Destroy <input type="number" id="doDestroyResoCount" name="doDestroyResoCount" value="0" /> Resonators</p>
@@ -293,12 +348,14 @@ p > span {
 					<p><input type="checkbox" id="doDeployShield" name="doDeployShield" /> Deploy <input type="number" id="doDeployShieldCount" name="doDeployShieldCount" value="0" /> Shields</p>
 					<p><input type="checkbox" id="doCreateLink" name="doCreateLink" /> Create <input type="number" id="doCreateLinkCount" name="doCreateLinkCount" value="0" /> Non-Field Links</p>
 					<p><input type="checkbox" id="doCreateField" name="doCreateField" /> Create <input type="number" id="doCreateFieldCount" name="doCreateFieldCount" value="0" /> Fields <span class="subtext">(2 links)</span></p>
+					<p><input type="checkbox" id="doRecharge" name="doRecharge" /> Recharge <input type="number" id="doRechargeCount" name="doRechargeCount" value="0" /> Resonators</p>
+					<p><input type="checkbox" id="doUpgradeReso" name="doUpgradeReso" /> Upgrade <input type="number" id="doUpgradeResoCount" name="doUpgradeResoCount" value="0" /> Resonators</p>
 					<div class="break"></div>
 
 					<p>Total Worth: <span id="calcWorth"></span></p>
 					<p>To Next Level: <span id="calcToLevel"></span></p>
 				</div>
-			</div>
-		</div>
+			</li>
+		</ul>
 	</body>
 </html>
